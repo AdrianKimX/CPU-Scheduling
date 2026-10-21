@@ -6,7 +6,21 @@
     <title></title>
 </head>
 <body>
-    <form action="POST"></form>
-    {{   }}
+    <form action="POST">
+
+<input type="number" name="num_process">
+
+
+{% for i in range(n)}
+<input type="number" name="arrival">
+<input type="number" name="burst">
+<input type="number" name="priority">
+
+{%endfor}
+<input type="submit">
+    </form>
+    { % if result is not none  %}
+    {{{result}}}
+    {% endif %}
 </body>
 </html>
