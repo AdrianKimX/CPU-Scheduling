@@ -1,4 +1,13 @@
-from flask import flask
+
+#from flask import Flask, render_template
+#app=Flask(__name__)
+#@app.route("/", methods=["GET", "POST"])
+#def home():
+   # result=None
+   # if request.method == "POST":
+     #    num_process= int(request.form['num_process'])#
+         
+
 def calculate(name, processes, mode, quantum=2):
     jobs = [p.copy() for p in processes]
     time = 0
@@ -8,9 +17,7 @@ def calculate(name, processes, mode, quantum=2):
     while len(done) < len(jobs):
         ready = [
             p for p in jobs
-            if p["id"]not in done and p["arrival"] <=
-time            
-        ]
+            if p["id"]not in done and p["arrival"] <=time]
 
         if not ready:
             time += 1
@@ -21,7 +28,7 @@ time
         elif mode == "SJF":
             p = min(ready, key=lambda x: x["burst"])
         elif mode == "Priority":
-             p = min(ready, key=lambda x: x["Priority"])
+            p = min(ready, key=lambda x: x["priority"])
         else:
             p = ready[0]
 
@@ -34,7 +41,7 @@ time
 
         time += run
         p["burst"] -= run
-        chart.append(p["id"], start, time)
+        chart.append((p["id"], start, time))
 
         if p["burst"] == 0:
             p["completion"] = time
@@ -44,20 +51,19 @@ time
             jobs.remove(p)
             jobs.append(p)
 
-        print("\n , name")
-        print("Gantt Chart")
+    print("\n , name")
+    print("Gantt Chart")
 
-        for item in chart:
-            print("|",p[0], end=" ")
+    for p in chart:
+        print("|", p[0], end="")
         print("|")
 
-        print(chart[0][1], end=" ")
-        for p in chart:
-            print (p[2], end= " ")
-
+        print(chart[0][1], end="")
+    for p in chart:
+        print (p[2], end= " ")
         print("\n\nProcess\tCT\tTT\tWT")
-
-        for p in sorted(jobs, key=lambda x: x["id"]):
+        
+    for p in sorted(jobs, key=lambda x: x["id"]):
             tt = p["completion"] - p["arrival"]
             wt = tt - next(
                 x["burst"] for x in processes if x["id"] ==
@@ -65,11 +71,11 @@ time
             )
             print(p["id"], "\t", p["completion"], "\t", tt,"\t", wt)
 
-    processes = []
+processes = []
 
-    n = int(input("Enter number of processes:"))
+n = int(input("Enter number of processes:"))
 
-    for i in range(n):
+for i in range(n):
         print("\nProcess P" + str(i + 1))
 
         arrival = int(input("Enter Arrival Time:"))
@@ -85,10 +91,9 @@ time
             "order": i
         })
 
-    quantum = int(input("\nEnter Time Quantum:"))
+quantum = int(input("\nEnter Time Quantum:"))
 
-    calculate("FCFS", processes, "FCFS")
-    calculate("SJF", processes, "SJF")
-    calculate("Priority Scheduling", processes, "Priority")
-    calculate("Round Robin", processes, "RR", quantum)
-
+calculate("FCFS", processes, "FCFS")
+calculate("SJF", processes, "SJF")
+calculate("Priority Scheduling", processes, "Priority")
+calculate("Round Robin", processes, "RR", quantum)
