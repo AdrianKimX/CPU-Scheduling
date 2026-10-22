@@ -4,45 +4,92 @@
 <head>
     <meta charset="UTF-8">
     <title>CPU Scheduling</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
+<link href="style.css" rel="stylesheet" >
+<style>
+    *a{
+        text-decoration: none;
+    }
+.main{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100vh;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+
+}
+
+.form-field{
+   width:80%;
+   margin:auto;
+}
+form{
+box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+padding:15px;
+border-radius:5px;
+   
+}
+#processes{
+    max-height: 21vh;
+overflow-y: auto;
+
+}
+.results{
+    width:90%;
+   margin:auto;
+   padding:10px;
+    max-height: 50vh;
+overflow-y: auto;
+box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+}
+
+</style>
+
 </head>
 <body>
-    <h1>CPU Scheduling </h1>
+    <div class="main">
+    <h3>CPU Scheduling </h3>
 
     {% if error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
-
+     <button type="button" onclick="addProcess()">
+            Add Process
+        </button>
+<div class="form-field">
+   
     <form method="POST">
+        
         <div id="processes">
     <div class="process">
-                <h3>Process P1</h3>
+        
+                <h4>Process P1</h4>
+    
              Arrival:
             <input type="number" name="arrival"
-                       min="0" value="0" required>
+                       min="0" required>
 
                 Burst:
          <input type="number" name="burst"
-                       min="1" value="5" required>
+                       min="1"  required>
 
                 Priority:
                 <input type="number" name="priority"
-                       value="1" required>
+                       required>
     </div>
         </div>
 
-           <button type="button" onclick="addProcess()">
-            Add Process
-        </button>
+           
 
         <p>
             Time Quantum:
             <input type="number" name="quantum"
-                   min="1" value="2" required>
+                   min="1" required>
         </p>
 
         <button type="submit">Calculate</button>
     </form>
+    </div>
 <div class="results">
     {% for result in results %}
         <hr>
@@ -89,7 +136,7 @@
         </table>
     {% endfor %}
     </div>
-
+</div>
     <script>
         let count = 1;
 
@@ -99,16 +146,16 @@
             const div = document.createElement("div");
             div.className = "process";
             div.innerHTML = `
-                <h3>Process P${count}</h3>
+                <h4>Process P${count}</h4>
                 Arrival:
                 <input type="number" name="arrival"
-                       min="0" value="0" required>
+                       min="0" required>
                 Burst:
                 <input type="number" name="burst"
-                       min="1" value="5" required>
+                       min="1"  required>
                 Priority:
                 <input type="number" name="priority"
-                       value="1" required>
+                        required>
             `;
 
             document.getElementById("processes").appendChild(div);
