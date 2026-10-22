@@ -1,99 +1,169 @@
 
-#from flask import Flask, render_template
-#app=Flask(__name__)
-#@app.route("/", methods=["GET", "POST"])
-#def home():
-   # result=None
-   # if request.method == "POST":
-     #    num_process= int(request.form['num_process'])#
-         
+from flask import Flask, render_template, request
 
-def calculate(name, processes, mode, quantum=2):
+app = Flask(__name__)
+
+
+def calculate(processes, mode, quantum=2):
     jobs = [p.copy() for p in processes]
-    time = 0
+    remaining = {p["id"]: p["burst"] for p in jobs}
     chart = []
-    done = []
+    time = 0
 
-    while len(done) < len(jobs):
-        ready = [
-            p for p in jobs
-            if p["id"]not in done and p["arrival"] <=time]
+    if mode == "RR":
+        queue = []
+        pending = sorted(jobs, key=lambda p: (p["arrival"], p["order"]))
+        index = 0
 
-        if not ready:
-            time += 1
-            continue
+        while index < len(pending) or queue:
+            if not queue:
+                time = max(time, pending[index]["arrival"])
 
-        if mode == "FCFS":
-            p = min(ready, key=lambda x: x["arrival"])
-        elif mode == "SJF":
-            p = min(ready, key=lambda x: x["burst"])
-        elif mode == "Priority":
-            p = min(ready, key=lambda x: x["priority"])
-        else:
-            p = ready[0]
+            while index < len(pending) and pending[index]["arrival"] <= time:
+                queue.append(pending[index])
+                index += 1
 
-        start = time
+            p = queue.pop(0)
+            start = time
+            run = min(quantum, remaining[p["id"]])
 
-        if mode == "RR":
-            run = min(quantum, p["burst"])
-        else:
-            run = p["burst"]
+            time += run
+            remaining[p["id"]] -= run
+            chart.append({
+                "id": p["id"],
+                "start": start,
+                "end": time
+            })
 
-        time += run
-        p["burst"] -= run
-        chart.append((p["id"], start, time))
+            while index < len(pending) and pending[index]["arrival"] <= time:
+                queue.append(pending[index])
+                index += 1
 
-        if p["burst"] == 0:
-            p["completion"] = time
-            done.append(p["id"])
+            if remaining[p["id"]] > 0:
+                queue.append(p)
 
-        elif mode == "RR":
-            jobs.remove(p)
-            jobs.append(p)
+    else:
+        completed = set()
 
-    print("\n , name")
-    print("Gantt Chart")
+        while len(completed) < len(jobs):
+            ready = [
+                p for p in jobs
+                if p["id"] not in completed
+                and p["arrival"] <= time
+            ]
 
-    for p in chart:
-        print("|", p[0], end="")
-        print("|")
+            if not ready:
+                time = min(
+                    p["arrival"] for p in jobs
+                    if p["id"] not in completed
+                )
+                ready = [
+                    p for p in jobs
+                    if p["id"] not in completed
+                    and p["arrival"] <= time
+                ]
 
-        print(chart[0][1], end="")
-    for p in chart:
-        print (p[2], end= " ")
-        print("\n\nProcess\tCT\tTT\tWT")
-        
-    for p in sorted(jobs, key=lambda x: x["id"]):
-            tt = p["completion"] - p["arrival"]
-            wt = tt - next(
-                x["burst"] for x in processes if x["id"] ==
-    p["id"]
-            )
-            print(p["id"], "\t", p["completion"], "\t", tt,"\t", wt)
+            if mode == "SJF":
+                p = min(ready, key=lambda x: (x["burst"], x["order"]))
+            elif mode == "Priority":
+                p = min(ready, key=lambda x: (x["priority"], x["order"]))
+            else:
+                p = min(ready, key=lambda x: (x["arrival"], x["order"]))
 
-processes = []
+            start = time
+            time += remaining[p["id"]]
 
-n = int(input("Enter number of processes:"))
+            chart.append({
+                "id": p["id"],
+                "start": start,
+                "end": time
+            })
 
-for i in range(n):
-        print("\nProcess P" + str(i + 1))
+            remaining[p["id"]] = 0
+            completed.add(p["id"])
 
-        arrival = int(input("Enter Arrival Time:"))
-        burst = int(input("Enter Burst Time:"))
-        priority = int(input("Enter Priority:"))
+    completion = {}
+    for entry in chart:
+        completion[entry["id"]] = entry["end"]
 
-        processes.append({
-            "id": "P" + str(i + 1),
-            "arrival": arrival,
-            "burst": burst,
-            "original_burst": burst,
-            "priority": priority,
-            "order": i
+    stats = []
+    for p in sorted(jobs, key=lambda x: x["order"]):
+        ct = completion[p["id"]]
+        tt = ct - p["arrival"]
+        wt = tt - p["burst"]
+
+        stats.append({
+            "id": p["id"],
+            "arrival": p["arrival"],
+            "burst": p["burst"],
+            "priority": p["priority"],
+            "completion": ct,
+            "turnaround": tt,
+            "waiting": wt
         })
 
-quantum = int(input("\nEnter Time Quantum:"))
+    return {
+        "mode": mode,
+        "chart": chart,
+        "stats": stats
+    }
 
-calculate("FCFS", processes, "FCFS")
-calculate("SJF", processes, "SJF")
-calculate("Priority Scheduling", processes, "Priority")
-calculate("Round Robin", processes, "RR", quantum)
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    results = []
+
+    if request.method == "POST":
+        try:
+            arrivals = request.form.getlist("arrival")
+            bursts = request.form.getlist("burst")
+            priorities = request.form.getlist("priority")
+
+            if not arrivals or not (
+                len(arrivals) == len(bursts) == len(priorities)
+            ):
+                raise ValueError("Enter all process values.")
+
+            processes = []
+
+            for i, (a, b, pr) in enumerate(
+                zip(arrivals, bursts, priorities)
+            ):
+                arrival = int(a)
+                burst = int(b)
+                priority = int(pr)
+
+                if arrival < 0 or burst <= 0:
+                    raise ValueError(
+                        "Arrival must be non-negative and burst must be positive."
+                    )
+
+                processes.append({
+                    "id": f"P{i + 1}",
+                    "arrival": arrival,
+                    "burst": burst,
+                    "priority": priority,
+                    "order": i
+                })
+
+            quantum = int(request.form.get("quantum", 2))
+            if quantum <= 0:
+                raise ValueError("Quantum must be positive.")
+
+            for mode in ["FCFS", "SJF", "Priority", "RR"]:
+                results.append(
+                    calculate(processes, mode, quantum)
+                )
+
+        except ValueError as e:
+            return render_template(
+                "index.html", results=[], error=str(e)
+            )
+
+    return render_template(
+        "index.html", results=results, error=None
+    )
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
