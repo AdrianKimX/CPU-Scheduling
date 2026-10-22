@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    name = "Alex"
-    return render_template("index.html", username=name)
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
 
 
 from flask import Flask, render_template, request
@@ -27,22 +13,8 @@ def home():
         num2 = float(request.form["num2"])
         result = num1 + num2
 
-    return render_template("index.html", result=result)
-
-if __name__ == "__main__":
-    app.run(debug=True)
-=======
-from flask import Flask, render_template, request
-app=Flask(__name__)
-@app.route("/", methods=["GET", "POST"])
-
-def home():
-    result=None
-    if request.method == "POST":
-        num_process= int(request.form['num_process'])
-        result= num_process
-
     return render_template("test.html", result=result)
+
 if __name__ == "__main__":
     app.run(debug=True)
->>>>>>> 30f180a0a6cfa234738f4c450db6d696e5557eec
+

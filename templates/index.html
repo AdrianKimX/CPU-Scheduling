@@ -1,59 +1,118 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 30f180a0a6cfa234738f4c450db6d696e5557eec
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<<<<<<< HEAD
-    <title>Sum Calculator</title>
+    <title>CPU Scheduling</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
 </head>
 <body>
-    <h1>Sum Calculator</h1>
+    <h1>CPU Scheduling </h1>
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
 
     <form method="POST">
-        <label>First number:</label>
-        <input type="number" name="num1"
-               step="any" required>
+        <div id="processes">
+    <div class="process">
+                <h3>Process P1</h3>
+             Arrival:
+            <input type="number" name="arrival"
+                       min="0" value="0" required>
 
-        <br><br>
+                Burst:
+         <input type="number" name="burst"
+                       min="1" value="5" required>
 
-        <label>Second number:</label>
-        <input type="number" name="num2"
-               step="any" required>
+                Priority:
+                <input type="number" name="priority"
+                       value="1" required>
+    </div>
+        </div>
 
-        <br><br>
+           <button type="button" onclick="addProcess()">
+            Add Process
+        </button>
 
-        <button type="submit">Calculate Sum</button>
+        <p>
+            Time Quantum:
+            <input type="number" name="quantum"
+                   min="1" value="2" required>
+        </p>
+
+        <button type="submit">Calculate</button>
     </form>
+<div class="results">
+    {% for result in results %}
+        <hr>
+        <h2>{{ result.mode }}</h2>
 
-    {% if result is not none %}
-        <h2>Result: {{ result }}</h2>
-    {% endif %}
+        <h3>Gantt Chart</h3>
+        {% for item in result.chart %}
+            <span>| {{ item.id }} </span>
+        {% endfor %}
+        <span>|</span>
+
+    <p>
+            Time:
+            {% if result.chart %}
+                {{ result.chart[0].start }}
+                {% for item in result.chart %}
+                    &nbsp; {{ item.end }}
+                {% endfor %}
+            {% endif %}
+        </p>
+
+        <table border="1" cellpadding="6">
+            <tr>
+                <th>Process</th>
+                <th>Arrival</th>
+                <th>Burst</th>
+                <th>Priority</th>
+                <th>CT</th>
+                <th>TT</th>
+                <th>WT</th>
+            </tr>
+
+            {% for p in result.stats %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.arrival }}</td>
+                    <td>{{ p.burst }}</td>
+                    <td>{{ p.priority }}</td>
+                    <td>{{ p.completion }}</td>
+                    <td>{{ p.turnaround }}</td>
+                    <td>{{ p.waiting }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
+    </div>
+
+    <script>
+        let count = 1;
+
+        function addProcess() {
+            count++;
+
+            const div = document.createElement("div");
+            div.className = "process";
+            div.innerHTML = `
+                <h3>Process P${count}</h3>
+                Arrival:
+                <input type="number" name="arrival"
+                       min="0" value="0" required>
+                Burst:
+                <input type="number" name="burst"
+                       min="1" value="5" required>
+                Priority:
+                <input type="number" name="priority"
+                       value="1" required>
+            `;
+
+            document.getElementById("processes").appendChild(div);
+        }
+    </script>
 </body>
 </html>
-=======
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-</head>
-<body>
-    <form action="POST">
-
-<input type="number" name="num_process">
-
-
-{% for i in range(n)}
-<input type="number" name="arrival">
-<input type="number" name="burst">
-<input type="number" name="priority">
-
-{%endfor}
-<input type="submit">
-    </form>
-    { % if result is not none  %}
-    {{{result}}}
-    {% endif %}
-</body>
-</html>
->>>>>>> 30f180a0a6cfa234738f4c450db6d696e5557eec
